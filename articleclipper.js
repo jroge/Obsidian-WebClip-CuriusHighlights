@@ -52,7 +52,7 @@ javascript
             let highlightedTexts = [];
             highlights.forEach((highlight) => {
                 const text = highlight.textContent.trim();
-                console.log("Highlight Found:", text); // Log each found highlight
+                // console.log("Highlight Found:", text); // Log each found highlight
                 highlightedTexts.push(`${text}`); // Add each highlighted text to the array
             });
             return highlightedTexts;
@@ -108,7 +108,7 @@ javascript
 
         const slashlessBody = cleanedBody.replace(/\\/g, '');
 
-        console.log("markdown", slashlessBody)
+        // console.log("markdown", slashlessBody)
 
         var date = new Date();
 
