@@ -1,0 +1,11 @@
+/* Style Obsidian highlighting syntax as <mark> element */
+.cm-s-obsidian span.cm-formatting-highlight, .cm-s-obsidian span.cm-highlight {
+    background-color: #D2B3FFA6;
+    color: #000000; /* Black text color */
+}
+
+/* Preview */
+.markdown-preview-view mark {
+    background-color: #D2B3FFA6;
+    color: #000000; /* Black text color */
+}
