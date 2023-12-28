@@ -1,3 +1,5 @@
+#cmd-line linter proof of concept for small bug where text is't paragraph formatted
+#need a big context area though and feel like i would rather do it by hand then spend like tens of cents a blog
 # import openai
 # import os
 # import yaml
