@@ -1,5 +1,4 @@
-javascript
-:(function() {
+javascript:(function() {
     Promise.all([
         import('https://unpkg.com/turndown@6.0.0?module'),
         import('https://unpkg.com/@tehshrike/readability@0.2.0'),
@@ -9,16 +8,10 @@ javascript
         default: Readability
     }]) => { 
 
-        /* Optional vault name */
         const vault = "";
-
-        /* Optional folder name such as "Clippings/" */
         const folder = "Clippings/";
-
-        /* Optional tags  */
         let tags = "clippings";
 
-        /* Parse the site's meta keywords content into tags, if present */
         if (document.querySelector('meta[name="keywords" i]')) {
             var keywords = document.querySelector('meta[name="keywords" i]').getAttribute('content').split(',');
 
@@ -46,22 +39,20 @@ javascript
             }
             return html;
         }
-
+        
         function getHighlightedText() {
             const highlights = document.querySelectorAll('.curius-highlight.curius-own-highlight');
             let highlightedTexts = [];
             highlights.forEach((highlight) => {
                 const text = highlight.textContent.trim();
-                // console.log("Highlight Found:", text); // Log each found highlight
-                highlightedTexts.push(`${text}`); // Add each highlighted text to the array
+                console.log("Highlight Found:", text);
+                highlightedTexts.push(`${text}`);
             });
             return highlightedTexts;
         }
 
         const selection = getSelectionHtml();
-        const curiusHighlights = getHighlightedText(); // Get Curius highlights
-        // console.log("Curius Highlights Array:", curiusHighlights); // Log the array to see its contents
-
+        const curiusHighlights = getHighlightedText();
         const {
             title,
             byline,
@@ -72,29 +63,45 @@ javascript
             var userAgent = window.navigator.userAgent,
                 platform = window.navigator.platform,
                 windowsPlatforms = ['Win32', 'Win64', 'Windows', 'WinCE'];
-
+        
+            fileName = fileName.replace(/:/g, '').replace(/[/\\?%*|"<>]/g, '-');
+        
             if (windowsPlatforms.indexOf(platform) !== -1) {
-                fileName = fileName.replace(':', '').replace(/[/\\?%*|"<>]/g, '-');
-            } else {
-                fileName = fileName.replace(':', '').replace(/\//g, '-').replace(/\\/g, '-');
+                fileName = fileName.replace(/\//g, '-').replace(/\\/g, '-');
             }
+        
             return fileName;
         }
         const fileName = getFileName(title);
 
         var markdownify = selection ? selection : content;
-        markdownify = markdownify.replace(/\\|=/g, '');
         
+        var parser = new DOMParser();
+        markdownify = parser.parseFromString(markdownify, 'text/html');
+
+        function highlightText(node, text) {
+            var walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, false);
+            var textNode;
+            while (textNode = walker.nextNode()) {
+                var value = textNode.nodeValue;
+                if (value.includes(text)) {
+                    var highlightedText = value.replace(text, `==${text}==`);
+                    textNode.nodeValue = highlightedText;
+                }
+            }
+        }
+
         curiusHighlights.forEach((text) => {
-            markdownify = markdownify.split(text).join(`==${text}==`);
+            highlightText(markdownify.body, text);
         });
+        
+        markdownify = markdownify.body.innerHTML;
+
         markdownify = markdownify.replace(/[%"?]/g, '');
 
-        // After all replacements
         var vaultName = vault ? '&vault=' + encodeURIComponent(`${vault}`) : '';
 
         markdownify = markdownify.replace(/\\/g, '');
-
 
         const markdownBody = new Turndown({
             headingStyle: 'atx',
@@ -104,11 +111,13 @@ javascript
             emDelimiter: '*',
         }).turndown(markdownify);
 
-       const cleanedBody = markdownBody.replace(/<\/?[^>]+(>|$)/g, "");
+        // console.log("one", markdownify);
 
-        const slashlessBody = cleanedBody.replace(/\\/g, '');
+       
+        cleanedBody = markdownify.replace(/<\/?[^>]+(>|$)/g, "");
+        // console.log("two", cleanedBody);
 
-        // console.log("markdown", slashlessBody)
+         slashlessBody = cleanedBody.replace(/\\/g, '');
 
         var date = new Date();
 
@@ -138,10 +147,9 @@ javascript
         if (publishedDate && publishedDate.trim() !== "") {
             var date = new Date(publishedDate);
             var year = date.getFullYear();
-            var month = date.getMonth() + 1; // Months are 0-based in JavaScript
+            var month = date.getMonth() + 1;
             var day = date.getDate();
 
-            // Pad month and day with leading zeros if necessary
             month = month < 10 ? '0' + month : month;
             day = day < 10 ? '0' + day : day;
 
@@ -161,7 +169,7 @@ javascript
             '---\n\n' +
             slashlessBody;
 
-         document.location.href = "obsidian://new?"
+        document.location.href = "obsidian://new?"
             + "file=" + encodeURIComponent(folder + fileName)
             + "&content=" + encodeURIComponent(fileContent)
             + vaultName;
